@@ -2,7 +2,7 @@ window.addEventListener("load", function () {
   console.clear();
   const canvas = document.getElementById("canvas1");
   const ctx = canvas.getContext("2d");
-  canvas.width = 800;
+  canvas.width = 1200;
   canvas.height = 720;
 
   class InputHandler {
@@ -10,8 +10,7 @@ window.addEventListener("load", function () {
       this.keys = {
         right: false,
         left: false,
-        up: false,
-        space: false
+        up: false
       };
     }
 
@@ -19,43 +18,80 @@ window.addEventListener("load", function () {
       if (e.key === "a") input.keys.left = true;
       if (e.key === "w") input.keys.up = true;
       if (e.key === "d") input.keys.right = true;
-      if (e.key === " ") input.keys.space = true;
     }
     keyup(e) {
       if (e.key === "a") input.keys.left = false;
       if (e.key === "w") input.keys.up = false;
       if (e.key === "d") input.keys.right = false;
-      if (e.key === " ") input.keys.space = false;
+    }
+    keypress(e) {
+      if (e.key === " ") player.flipGrav();
+      if (e.key === "o") player.dash();
     }
   }
 
   class Player {
     constructor(gameWidth, gameHeight) {
+      //Canvas and Object Size
       this.gameHeight = gameHeight;
       this.gameWidth = gameWidth;
       this.width = 50;
       this.height = 50;
+
+      //Position, Velocity and Acceleration
       this.x = 0;
       this.y = this.gameHeight - this.height;
       this.xv = 0;
       this.yv = 0;
-      this.jump = false;
       this.ay = 1;
       this.xy = 0.5;
+
+      //SKills / Features
+      this.jump = false;
       this.friction = 0.9;
+      this.jumps = 1;
+      this.gravity = 1;
     }
-    draw(context) {
-      context.fillStyle = "white";
+
+    //Create Sprite
+    draw(context, colour) {
+      context.fillStyle = colour;
       context.fillRect(this.x, this.y, this.width, this.height);
     }
+
+    //Gravity
+    flipGrav() {
+      if (this.jump) return;
+      this.jump = true;
+      this.ay *= -1;
+      this.gravity *= -1;
+      this.yv = 0;
+    }
+
+    //Dash
+    dash() {
+      if (input.keys.right) this.xv = 70;
+      else if (input.keys.left) this.xv = -70;
+      else return;
+      player.draw(ctx, "red");
+      this.yv = 0;
+      this.ay = 0;
+    }
+
     update(input) {
       document.addEventListener("keydown", input.keydown);
       document.addEventListener("keyup", input.keyup);
+      document.addEventListener("keypress", input.keypress);
 
-      this.y += this.yv;
+      //Re-establish Gravity
+      if (this.xv < 20) {
+        this.ay = this.gravity;
+        player.draw(ctx, "white");
+      }
+
       //Horizontal Speed
-      if (input.keys.right) this.xa = this.jump ? 1 : 3;
-      else if (input.keys.left) this.xa = this.jump ? -1 : -3;
+      if (input.keys.right && this.xv < 30) this.xa = this.jump ? 1 : 3;
+      else if (input.keys.left && this.xv > -30) this.xa = this.jump ? -1 : -3;
       else this.xa = 0;
       this.xv += this.xa;
       this.xv *= this.friction;
@@ -71,11 +107,13 @@ window.addEventListener("load", function () {
       }
 
       //Vertical Speed
-
+      this.y += this.yv;
+      this.yv += this.ay;
       if (input.keys.up && !player.jump) {
-        this.yv = -30;
+        this.yv = -20 * this.ay;
         this.jump = true;
       }
+
       //Vertical Borders
       if (this.y > this.gameHeight - this.height) {
         this.jump = false;
@@ -84,7 +122,6 @@ window.addEventListener("load", function () {
         this.jump = false;
         this.y = 0;
       }
-      this.yv += this.ay;
     }
   }
 
@@ -93,7 +130,7 @@ window.addEventListener("load", function () {
 
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    player.draw(ctx);
+    player.draw(ctx, "white");
     player.update(input);
     requestAnimationFrame(animate);
   }
