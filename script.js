@@ -1,9 +1,13 @@
+import TileMap from "./TileMap.js";
+
 window.addEventListener("load", function () {
   console.clear();
   const canvas = document.getElementById("canvas1");
   const ctx = canvas.getContext("2d");
-  canvas.width = 1200;
-  canvas.height = 720;
+  const tileSize = 64
+  const tileMap = new TileMap(tileSize);
+  canvas.width = 64 * 15;
+  canvas.height = 64 * 11;
 
   class InputHandler {
     constructor() {
@@ -30,13 +34,32 @@ window.addEventListener("load", function () {
     }
   }
 
+  class Background {
+    constructor(gameWidth, gameHeight){
+      this.gameWidth = gameWidth;
+      this.gameHeight = gameHeight;
+      this.image = document.getElementById("background")
+    }
+    draw(context){
+      context.drawImage(this.image, 0, 0, this.gameWidth, this.gameHeight)
+    }
+  }
+
   class Player {
     constructor(gameWidth, gameHeight) {
       //Canvas and Object Size
+      this.imgArray = []
       this.gameHeight = gameHeight;
       this.gameWidth = gameWidth;
-      this.width = 50;
-      this.height = 50;
+      this.width = 64;
+      this.height = 128 ;
+      this.image = document.getElementById("playerImage");
+      this.frame = 0;
+
+      //Frames
+      this.maxFrame = 10;
+      this.frameRate = 20;
+      this.timer = 1000 /this.maxFrame; 
 
       //Position, Velocity and Acceleration
       this.x = 0;
@@ -54,9 +77,22 @@ window.addEventListener("load", function () {
     }
 
     //Create Sprite
-    draw(context, colour) {
-      context.fillStyle = colour;
-      context.fillRect(this.x, this.y, this.width, this.height);
+    draw(context) {
+      //context.fillStyle = "blue";
+      //context.fillRect(this.x, this.y, this.width, this.height);
+      context.drawImage(this.image, this.x, this.y, this.width, this.height)
+      //context.drawImage(this.image, this.frame * this.width, 0 * this.height, 1 * this.width, 1 * this.height, this.x, this.y, this.width, this.height);
+    }
+
+    //Collision
+    checkCollision(){
+
+      //Translate player into grid locations
+      var playerGridX = Math.floor(this.x / 64)
+      var playerGridY = Math.floor(this.y / 64)
+      if (tileMap.map[playerGridY][playerGridX] != 0){
+        
+      }
     }
 
     //Gravity
@@ -79,12 +115,15 @@ window.addEventListener("load", function () {
     }
 
     update(input) {
+      this.frame = this.frame + 1
+      if (this.frame > 3) {this.frame = 0} 
+  
       document.addEventListener("keydown", input.keydown);
       document.addEventListener("keyup", input.keyup);
       document.addEventListener("keypress", input.keypress);
 
       //Re-establish Gravity
-      if (this.xv < 20) {
+      if (Math.abs(this.xv) < 20) {
         this.ay = this.gravity;
         player.draw(ctx, "white");
       }
@@ -122,15 +161,22 @@ window.addEventListener("load", function () {
         this.jump = false;
         this.y = 0;
       }
+
+      this.checkCollision();
     }
   }
 
   const input = new InputHandler();
   const player = new Player(canvas.width, canvas.height);
+  const background = new Background(canvas.width, canvas.height)
 
   function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    player.draw(ctx, "white");
+    
+    
+    background.draw(ctx);
+    tileMap.draw(canvas, ctx);
+    player.draw(ctx);
     player.update(input);
     requestAnimationFrame(animate);
   }
