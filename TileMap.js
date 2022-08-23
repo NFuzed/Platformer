@@ -1,8 +1,8 @@
 export default class TileMap {
   constructor(tileSize) {
     this.tileSize = tileSize;
-    this.grass = this.#image("grass.png");
-    this.dirt = this.#image("dirt.png");
+    this.grass = this.#image("Grass.png");
+    this.dirt = this.#image("Dirt.png");
   }
 
   #image(fileName) {
