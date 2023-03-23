@@ -174,10 +174,10 @@ window.addEventListener("load", function () {
     frames.update();
 
     //Only Updates Player if on the Correct Frame Interval
-    if (frames.nextFrame){
-      frames.reset();
+    //if (frames.nextFrame){
+      //frames.reset();
       player.update(input);
-    }
+    //}
 
     //Always Draws Assets Regardless
     background.draw(ctx);
